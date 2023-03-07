@@ -1,29 +1,41 @@
-#this code is only for human detection and counting. The real version will be able to detect human as well as to give output to switch on or off the electrical appliances.
-
-
-
-# important opencv library 
-
-# Reading the Image
-image = cv2.imread('people1.jpg')
-
-# histogram of gradient algorithm 
+import cv2
+import imutils
+   
+# Initializing the HOG person
+# detector
 hog = cv2.HOGDescriptor()
 hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
-
-# detect humans in input image or using video
-(humans, _) = hog.detectMultiScale(image, winStride=(10, 10),
-padding=(32, 32), scale=1.1)
-
-# getting no. of human detected and producing output 
-print('Human Detected : ', len(humans))
-
-# loop over all detected humans
-for (x, y, w, h) in humans:
-   pad_w, pad_h = int(0.15 * w), int(0.01 * h)
-   cv2.rectangle(image, (x + pad_w, y + pad_h), (x + w - pad_w, y + h - pad_h), (0, 255, 0), 2)
-
-# display the output image
-cv2.imshow("Image", image)
-cv2.waitKey(0)
+   
+cap = cv2.VideoCapture(0)
+   
+while cap.isOpened():
+    # Reading the video stream
+    ret, image = cap.read()
+    if ret:
+        image = imutils.resize(image, 
+                               width=min(4000, image.shape[1]))
+   
+        # Detecting all the regions 
+        # in the Image that has a 
+        # pedestrians inside it
+        (regions, _) = hog.detectMultiScale(image,
+                                            winStride=(4, 4),
+                                            padding=(4, 4),
+                                            scale=1.05)
+   
+        # Drawing the regions in the 
+        # Image
+        for (x, y, w, h) in regions:
+            cv2.rectangle(image, (x, y),
+                          (x + w, y + h), 
+                          (0, 0, 255), 2)
+   
+        # Showing the output Image
+        cv2.imshow("Image", image)
+        if cv2.waitKey(25) & 0xFF == ord('q'):
+            break
+    else:
+        break
+  
+cap.release()
 cv2.destroyAllWindows()
